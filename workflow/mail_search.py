@@ -107,7 +107,7 @@ def datum_tekst(ts):
     if d.date() == nu.date():
         return "today %02d:%02d" % (d.hour, d.minute)
     if d.year == nu.year:
-        return "%s %d" % (MONTHS[d.month - 1])
+        return "%s %d" % (MONTHS[d.month - 1], d.day)
     return "%d %s %d" % (d.day, MONTHS[d.month - 1], d.year)
 
 
