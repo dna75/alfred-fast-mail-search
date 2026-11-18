@@ -75,7 +75,7 @@
 	<key>createdby</key>
 	<string>dna75</string>
 	<key>description</key>
-	<string>Fast search in Apple Mail by name, email address, subject or text</string>
+	<string>Fast search in Apple Mail by name, email address, subject, text or date</string>
 	<key>disabled</key>
 	<false/>
 	<key>name</key>
@@ -399,7 +399,7 @@ exec "$PY" ./mail_search.py --field=date "$1" 2&gt;&amp;1</string>
 				<key>scriptfile</key>
 				<string></string>
 				<key>subtext</key>
-				<string>today, yesterday, week, 2026-11-18, 2026-11 (optionally plus search words)</string>
+				<string>Pick today, yesterday, this month… or type a date such as 2026-11-18</string>
 				<key>title</key>
 				<string>Search Mail by date</string>
 				<key>type</key>
@@ -423,7 +423,8 @@ USAGE
   mailfrom jane        sender only (from)
   mailto jane          recipient only (to)
   mailsubject invoice  subject only
-  maildate today       by date: today, yesterday, week, month, 2026-11-18, 18-11-2026, 2026-11 or 2026 (search words may follow)
+  maildate             pick from a list (today, yesterday, last 7 days, this month, …) with Enter or Tab,
+                       or type a date: today, yesterday, week, month, 2026-11-18, 18-11-2026, 2026-11 or 2026 (search words may follow)
 You can also type prefixes in the main search: mail from:jane invoice, to:jane, subject:invoice, date:2026-11-18, after:2026-11-01, before:2026.
 
 ACTIONS
@@ -594,7 +595,7 @@ This workflow was created with the help of an AI assistant (Claude by Anthropic)
 		</dict>
 	</array>
 	<key>version</key>
-	<string>1.1.0</string>
+	<string>1.1.1</string>
 	<key>webaddress</key>
 	<string>https://github.com/dna75/alfred-fast-mail-search</string>
 </dict>

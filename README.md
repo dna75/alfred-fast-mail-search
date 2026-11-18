@@ -1,6 +1,6 @@
 # Fast Mail Search for Alfred
 
-Search Apple Mail instantly from [Alfred](https://www.alfredapp.com), like Spotlight does. The workflow reads Mail's local index (read-only), so results appear as you type.
+Search Apple Mail instantly from [Alfred](https://www.alfredapp.com), like Spotlight does: by name, email address, subject, text or date. The workflow reads Mail's local index (read-only), so results appear as you type.
 
 ![icon](workflow/icon.png)
 
@@ -16,11 +16,11 @@ Download `Fast.Mail.Search.alfredworkflow` from the [latest release](https://git
 | `mailfrom` | sender only | `mailfrom jane` |
 | `mailto` | recipient only | `mailto jane` |
 | `mailsubject` | subject only | `mailsubject invoice` |
-| `maildate` | by date, optionally with search words | `maildate yesterday`, `maildate 2026-11 jane` |
+| `maildate` | by date: pick from a list or type a date, optionally with search words | `maildate`, `maildate 2026-11 jane` |
 
 All words must match. Prefixes also work in the main search: `mail from:jane subject:invoice`.
 
-**Dates.** Use `date:`, `after:` or `before:` in any search, e.g. `mail invoice after:2026-11-01`. Accepted: `today`, `yesterday`, `week` (last 7 days), `month` (last 30 days), `2026-11-18`, `18-11-2026` (day first), `18-11` (this year), `2026-11`, `11-2026` and `2026`.
+**Dates.** Type `maildate` and pick *Today*, *Yesterday*, *Last 7 days*, *Last 30 days*, *This month*, *Last month*, *This year* or *Last year* with <kbd>↩</kbd> or <kbd>⇥</kbd>; add search words afterwards if you like. You can also use `date:`, `after:` or `before:` in any search, e.g. `mail invoice after:2026-11-01`. Accepted: `today`, `yesterday`, `week` (last 7 days), `month` (last 30 days), `2026-11-18`, `18-11-2026` (day first), `18-11` (this year), `2026-11`, `11-2026` and `2026`.
 
 **Use your own keywords.** All keywords can be changed in the workflow configuration (Alfred Preferences → Workflows → Fast Mail Search → Configure Workflow), for example to words in your own language.
 

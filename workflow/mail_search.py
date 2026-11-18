@@ -252,6 +252,23 @@ def boxnaam(url):
     return unquote(url.rstrip("/").split("/")[-1])
 
 
+def datum_keuzes(getypt):
+    """Preset list for the date keyword, so nothing has to be typed out."""
+    nu = datetime.datetime.now()
+    vm = nu.replace(day=1) - datetime.timedelta(days=1)
+    keuzes = [("Today", "today"), ("Yesterday", "yesterday"), ("Last 7 days", "week"), ("Last 30 days", "month"),
+            ("This month", "%d-%02d" % (nu.year, nu.month)), ("Last month", "%d-%02d" % (vm.year, vm.month)),
+            ("This year", str(nu.year)), ("Last year", str(nu.year - 1))]
+    t = getypt.lower()
+    items = []
+    for label, waarde in keuzes:
+        if t and not (label.lower().startswith(t) or waarde.startswith(t)):
+            continue
+        items.append({"title": label, "subtitle": "Enter or Tab to choose, then add search words if you like. Or type a date: 2026-11-18", "autocomplete": waarde + " ",
+                      "valid": False, "icon": MAIL_ICOON})
+    return items
+
+
 def main():
     veld = None
     args = []
@@ -269,6 +286,13 @@ def main():
         return
 
     query = " ".join(args).strip()
+    if veld in ("date", "datum"):
+        woorden = query.split()
+        if not woorden or (len(woorden) == 1 and not query.endswith(" ") and not datum_bereik(woorden[0])
+                           and ":" not in woorden[0]):
+            keuzes = datum_keuzes(woorden[0] if woorden else "")
+            if keuzes:
+                uit(keuzes)
     if veld:
         query = " ".join(w if re.match(r"^\w+:", w) or (veld in ("date", "datum") and not datum_bereik(w))
                          else veld + ":" + w for w in query.split())
