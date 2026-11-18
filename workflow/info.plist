@@ -97,8 +97,17 @@
 				<key>runningsubtext</key>
 				<string>Searching…</string>
 				<key>script</key>
-				<string>export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
-exec python3 ./mail_search.py "$1" 2&gt;&amp;1</string>
+				<string>PY=""
+for p in /opt/homebrew/bin/python3 /usr/local/bin/python3; do
+  [ -x "$p" ] &amp;&amp; PY="$p" &amp;&amp; break
+done
+# /usr/bin/python3 is only a real Python once Apple's Command Line Tools are installed
+if [ -z "$PY" ] &amp;&amp; /usr/bin/xcode-select -p &gt;/dev/null 2&gt;&amp;1 &amp;&amp; [ -x /usr/bin/python3 ]; then PY=/usr/bin/python3; fi
+if [ -z "$PY" ]; then
+  echo '{"items":[{"title":"Python 3 is not installed","subtitle":"Press Enter to install Apple Command Line Tools (includes Python 3), then search again","arg":"install-python","valid":true}]}'
+  exit 0
+fi
+exec "$PY" ./mail_search.py "$1" 2&gt;&amp;1</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -147,8 +156,17 @@ exec python3 ./mail_search.py "$1" 2&gt;&amp;1</string>
 				<key>runningsubtext</key>
 				<string>Searching…</string>
 				<key>script</key>
-				<string>export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
-exec python3 ./mail_search.py --field=from "$1" 2&gt;&amp;1</string>
+				<string>PY=""
+for p in /opt/homebrew/bin/python3 /usr/local/bin/python3; do
+  [ -x "$p" ] &amp;&amp; PY="$p" &amp;&amp; break
+done
+# /usr/bin/python3 is only a real Python once Apple's Command Line Tools are installed
+if [ -z "$PY" ] &amp;&amp; /usr/bin/xcode-select -p &gt;/dev/null 2&gt;&amp;1 &amp;&amp; [ -x /usr/bin/python3 ]; then PY=/usr/bin/python3; fi
+if [ -z "$PY" ]; then
+  echo '{"items":[{"title":"Python 3 is not installed","subtitle":"Press Enter to install Apple Command Line Tools (includes Python 3), then search again","arg":"install-python","valid":true}]}'
+  exit 0
+fi
+exec "$PY" ./mail_search.py --field=from "$1" 2&gt;&amp;1</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -197,8 +215,17 @@ exec python3 ./mail_search.py --field=from "$1" 2&gt;&amp;1</string>
 				<key>runningsubtext</key>
 				<string>Searching…</string>
 				<key>script</key>
-				<string>export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
-exec python3 ./mail_search.py --field=to "$1" 2&gt;&amp;1</string>
+				<string>PY=""
+for p in /opt/homebrew/bin/python3 /usr/local/bin/python3; do
+  [ -x "$p" ] &amp;&amp; PY="$p" &amp;&amp; break
+done
+# /usr/bin/python3 is only a real Python once Apple's Command Line Tools are installed
+if [ -z "$PY" ] &amp;&amp; /usr/bin/xcode-select -p &gt;/dev/null 2&gt;&amp;1 &amp;&amp; [ -x /usr/bin/python3 ]; then PY=/usr/bin/python3; fi
+if [ -z "$PY" ]; then
+  echo '{"items":[{"title":"Python 3 is not installed","subtitle":"Press Enter to install Apple Command Line Tools (includes Python 3), then search again","arg":"install-python","valid":true}]}'
+  exit 0
+fi
+exec "$PY" ./mail_search.py --field=to "$1" 2&gt;&amp;1</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -247,8 +274,17 @@ exec python3 ./mail_search.py --field=to "$1" 2&gt;&amp;1</string>
 				<key>runningsubtext</key>
 				<string>Searching…</string>
 				<key>script</key>
-				<string>export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
-exec python3 ./mail_search.py --field=subject "$1" 2&gt;&amp;1</string>
+				<string>PY=""
+for p in /opt/homebrew/bin/python3 /usr/local/bin/python3; do
+  [ -x "$p" ] &amp;&amp; PY="$p" &amp;&amp; break
+done
+# /usr/bin/python3 is only a real Python once Apple's Command Line Tools are installed
+if [ -z "$PY" ] &amp;&amp; /usr/bin/xcode-select -p &gt;/dev/null 2&gt;&amp;1 &amp;&amp; [ -x /usr/bin/python3 ]; then PY=/usr/bin/python3; fi
+if [ -z "$PY" ]; then
+  echo '{"items":[{"title":"Python 3 is not installed","subtitle":"Press Enter to install Apple Command Line Tools (includes Python 3), then search again","arg":"install-python","valid":true}]}'
+  exit 0
+fi
+exec "$PY" ./mail_search.py --field=subject "$1" 2&gt;&amp;1</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -277,7 +313,21 @@ exec python3 ./mail_search.py --field=subject "$1" 2&gt;&amp;1</string>
 				<key>escaping</key>
 				<integer>0</integer>
 				<key>script</key>
-				<string>if [ "$action" = "copy" ]; then printf %s "$1" | pbcopy; else open "$1"; fi</string>
+				<string>if [ "$action" = "copy" ]; then
+  printf %s "$1" | pbcopy
+  exit 0
+fi
+case "$1" in
+  install-python)
+    /usr/bin/xcode-select --install ;;
+  emlx:*)
+    # Older Mail databases: locate the message file by its id and let Mail open it
+    id="${1#emlx:}"
+    f=$(find "$HOME/Library/Mail" -type f \( -name "$id.emlx" -o -name "$id.partial.emlx" \) -print -quit 2&gt;/dev/null)
+    if [ -n "$f" ]; then open "$f"; else open -a Mail; fi ;;
+  *)
+    open "$1" ;;
+esac</string>
 				<key>scriptargtype</key>
 				<integer>1</integer>
 				<key>scriptfile</key>
@@ -310,10 +360,10 @@ ACTIONS
 Unread messages have a dot. Junk and trash are skipped; duplicates from "All Mail" are merged.
 
 REQUIREMENTS
-Alfred needs Full Disk Access (System Settings &gt; Privacy &amp; Security &gt; Full Disk Access) to read Mail's index at ~/Library/Mail. Nothing is written or sent anywhere; the database is opened read-only. Python 3 must be installed. Keywords can be changed in the workflow configuration.
+Alfred needs Full Disk Access (System Settings &gt; Privacy &amp; Security &gt; Full Disk Access) to read Mail's index at ~/Library/Mail. Nothing is written or sent anywhere; the database is opened read-only. Python 3 is required: Homebrew's or Apple's (part of the Command Line Tools). If it is missing, the workflow tells you and Enter starts Apple's installer. Keywords can be changed in the workflow configuration.
 
 NOTES
-Only the message preview (first lines) is searched, not the full body. Mail's internal database format differs between macOS versions; if results look wrong, run ./mail_search.py --schema in the workflow folder.
+Only the message preview (first lines) is searched, not the full body. Mail's internal database format differs between macOS versions. The workflow detects the layout and adapts (older layouts open the message file instead of a message link). Developed on macOS 27; older versions are supported on a best-effort basis. If results look wrong, run ./mail_search.py --schema in the workflow folder.
 
 DISCLOSURE
 This workflow was created with the help of an AI assistant (Claude by Anthropic) and tested by the author.</string>
@@ -443,7 +493,7 @@ This workflow was created with the help of an AI assistant (Claude by Anthropic)
 		</dict>
 	</array>
 	<key>version</key>
-	<string>1.0.1</string>
+	<string>1.0.2</string>
 	<key>webaddress</key>
 	<string>https://github.com/dna75/alfred-fast-mail-search</string>
 </dict>

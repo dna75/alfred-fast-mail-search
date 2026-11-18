@@ -17,7 +17,9 @@ Download `Fast.Mail.Search.alfredworkflow` from the [latest release](https://git
 | `mailto` | recipient only | `mailto jane` |
 | `mailsubject` | subject only | `mailsubject invoice` |
 
-All words must match. Prefixes also work in the main search: `mail from:jane subject:invoice`. Keywords can be changed in the workflow configuration.
+All words must match. Prefixes also work in the main search: `mail from:jane subject:invoice`.
+
+**Use your own keywords.** All four keywords can be changed in the workflow configuration (Alfred Preferences → Workflows → Fast Mail Search → Configure Workflow), for example to words in your own language.
 
 - <kbd>↩</kbd> open the message in Mail
 - <kbd>⌘</kbd><kbd>↩</kbd> copy the sender's email address
@@ -28,12 +30,12 @@ Unread messages are marked with a dot. Junk and trash are skipped.
 ## Requirements
 
 - **Full Disk Access for Alfred** (System Settings → Privacy & Security → Full Disk Access), needed to read `~/Library/Mail`. The database is opened read-only; nothing is written or sent anywhere.
-- **Python 3** (`python3` in PATH).
+- **Python 3**: Homebrew's or Apple's (part of the Command Line Tools). If it is missing, the workflow says so and <kbd>↩</kbd> starts Apple's installer.
 
 ## Limitations
 
 - Only the message preview (first lines) is searched, not the full body.
-- Tested on macOS 27. Mail's internal database layout differs between macOS versions. If results look wrong, run `./mail_search.py --schema` in the workflow folder and open an issue with the output.
+- Developed and tested on macOS 27. Mail's internal database layout differs between macOS versions; the workflow detects the layout and adapts. Older layouts are supported on a best-effort basis (checked against reconstructed databases, not on real older systems): there, messages are opened via their message file, which can take a moment. If results look wrong, run `./mail_search.py --schema` in the workflow folder and open an issue with the output.
 
 ## Disclosure
 

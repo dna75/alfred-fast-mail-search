@@ -61,8 +61,13 @@ def esc(woord):
     return "%" + woord.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
 
-def bouw_where(tokens, heeft_ontv, o_msg, o_adr, heeft_summ):
+def bouw_where(tokens, X):
+    """X holds the SQL expressions for this database layout (see schema())."""
     delen, params = [], []
+
+    def like(expr):
+        return "%s LIKE ? ESCAPE '\\'" % expr
+
     for tok in tokens:
         veld = None
         m = re.match(r"^(van|from|aan|to|onderwerp|subject):(.+)$", tok, re.I)
@@ -71,31 +76,89 @@ def bouw_where(tokens, heeft_ontv, o_msg, o_adr, heeft_summ):
                     "onderwerp": "subject", "subject": "subject"}[m.group(1).lower()]
             tok = m.group(2)
         p = esc(tok)
-        sub_ontv = ("EXISTS (SELECT 1 FROM recipients r JOIN addresses ra ON ra.ROWID = r.%s "
-                    "WHERE r.%s = m.ROWID AND (ra.address LIKE ? ESCAPE '\\' OR ra.comment LIKE ? ESCAPE '\\'))"
-                    % (o_adr, o_msg)) if heeft_ontv else "0"
+        afz = [like(e) for e in (X["addr"], X["name"]) if e]
+        ontv, n_ontv = "0", 0
+        if X["rcpt"]:
+            o_msg, o_adr, heeft_comment = X["rcpt"]
+            velden = ["ra.address"] + (["ra.comment"] if heeft_comment else [])
+            ontv = ("EXISTS (SELECT 1 FROM recipients r JOIN addresses ra ON ra.ROWID = r.%s "
+                    "WHERE r.%s = m.ROWID AND (%s))" % (o_adr, o_msg, " OR ".join(like(v) for v in velden)))
+            n_ontv = len(velden)
         if veld == "from":
-            delen.append("(a.address LIKE ? ESCAPE '\\' OR a.comment LIKE ? ESCAPE '\\')")
-            params += [p, p]
+            delen.append("(" + (" OR ".join(afz) or "0") + ")")
+            params += [p] * len(afz)
         elif veld == "to":
-            delen.append("(%s)" % sub_ontv)
-            params += [p, p] if heeft_ontv else []
+            delen.append("(%s)" % ontv)
+            params += [p] * n_ontv
         elif veld == "subject":
-            delen.append("(s.subject LIKE ? ESCAPE '\\')")
+            delen.append("(%s)" % like(X["subj"]))
             params += [p]
         else:
-            stukken = ["s.subject LIKE ? ESCAPE '\\'",
-                       "a.address LIKE ? ESCAPE '\\'",
-                       "a.comment LIKE ? ESCAPE '\\'"]
-            params += [p, p, p]
-            if heeft_summ:
-                stukken.append("sm.summary LIKE ? ESCAPE '\\'")
+            stukken = [like(X["subj"])] + afz
+            params += [p] * len(stukken)
+            if X["summ"]:
+                stukken.append(like(X["summ"]))
                 params.append(p)
-            stukken.append(sub_ontv)
-            if heeft_ontv:
-                params += [p, p]
+            stukken.append(ontv)
+            params += [p] * n_ontv
             delen.append("(" + " OR ".join(stukken) + ")")
     return " AND ".join(delen), params
+
+
+def schema(con):
+    """Work out where things live. Mail's Envelope Index changed over macOS versions:
+    newer versions keep subject/sender/summary in lookup tables and store the
+    Message-ID header; older ones keep text in `messages` and have no header."""
+    tabs = tabellen(con)
+    mcols = kolommen(con, "messages")
+    acols = kolommen(con, "addresses") if "addresses" in tabs else set()
+    try:
+        t_subj, t_send = con.execute(
+            "SELECT typeof(subject), typeof(sender) FROM messages "
+            "WHERE subject IS NOT NULL AND sender IS NOT NULL LIMIT 1").fetchone() or ("integer", "integer")
+    except sqlite3.Error:
+        t_subj = t_send = "integer"
+    X = {"joins": [], "rcpt": None}
+    if "subjects" in tabs and t_subj == "integer":
+        X["subj"] = "s.subject"
+        X["joins"].append("LEFT JOIN subjects s ON s.ROWID = m.subject")
+    else:
+        X["subj"] = "m.subject"
+    if "address" in acols and t_send == "integer":
+        X["addr"] = "a.address"
+        X["name"] = "a.comment" if "comment" in acols else None
+        X["joins"].append("LEFT JOIN addresses a ON a.ROWID = m.sender")
+    else:
+        X["addr"], X["name"] = "m.sender", None
+    if "summaries" in tabs and "summary" in mcols:
+        X["summ"] = "sm.summary"
+        X["joins"].append("LEFT JOIN summaries sm ON sm.ROWID = m.summary")
+    elif "snippet" in mcols:
+        X["summ"] = "m.snippet"
+    else:
+        X["summ"] = None
+    if "message_global_data" in tabs and "global_message_id" in mcols \
+            and "message_id_header" in kolommen(con, "message_global_data"):
+        X["hdr"] = "g.message_id_header"
+        X["joins"].append("LEFT JOIN message_global_data g ON g.ROWID = m.global_message_id")
+    else:
+        X["hdr"] = None
+    if "mailboxes" in tabs and "mailbox" in mcols and "url" in kolommen(con, "mailboxes"):
+        X["box"] = "mb.url"
+        X["joins"].append("LEFT JOIN mailboxes mb ON mb.ROWID = m.mailbox")
+    else:
+        X["box"] = None
+    if "recipients" in tabs and "address" in acols:
+        rc = kolommen(con, "recipients")
+        o_msg = "message" if "message" in rc else ("message_id" if "message_id" in rc else None)
+        o_adr = "address" if "address" in rc else ("address_id" if "address_id" in rc else None)
+        if o_msg and o_adr:
+            X["rcpt"] = (o_msg, o_adr, "comment" in acols)
+    X["date"] = "m.date_received" if "date_received" in mcols else ("m.date_sent" if "date_sent" in mcols else "0")
+    X["prefix"] = "COALESCE(m.subject_prefix, '')" if "subject_prefix" in mcols else "''"
+    X["read"] = "m.read" if "read" in mcols else "1"
+    X["deleted"] = "m.deleted = 0 AND " if "deleted" in mcols else ""
+    return X
 
 
 def datum_tekst(ts):
@@ -133,23 +196,6 @@ def main():
             print(t, sorted(kolommen(con, t)))
         return
 
-    if args and args[0] == "--debug":
-        con = verbind(pad)
-        r = con.execute("SELECT ROWID, sender, subject FROM messages WHERE deleted=0 ORDER BY date_received DESC LIMIT 1").fetchone()
-        print("laatste bericht (ROWID, sender, subject):", r)
-        sid = r[1]
-        for naam, q in [("senders", "SELECT * FROM senders WHERE ROWID=%d" % sid),
-                        ("sender_addresses", "SELECT * FROM sender_addresses WHERE sender=%d" % sid),
-                        ("addresses met ROWID=sender", "SELECT * FROM addresses WHERE ROWID=%d" % sid),
-                        ("addresses via sender_addresses", "SELECT a.* FROM addresses a JOIN sender_addresses sa ON sa.address=a.ROWID WHERE sa.sender=%d" % sid),
-                        ("sender_addresses voorbeeld", "SELECT * FROM sender_addresses LIMIT 3"),
-                        ("addresses voorbeeld", "SELECT * FROM addresses LIMIT 3")]:
-            try:
-                print(naam, "->", con.execute(q).fetchall())
-            except Exception as e:
-                print(naam, "FOUT", e)
-        return
-
     query = " ".join(args).strip()
     if veld:
         query = " ".join(w if re.match(r"^\w+:", w) else veld + ":" + w for w in query.split())
@@ -176,58 +222,28 @@ def main():
                      "Give Alfred Full Disk Access (Enter opens System Settings)",
                      "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles", True)])
 
-    tabs = tabellen(con)
-    mcols = kolommen(con, "messages")
-    heeft_hdr = "message_global_data" in tabs and "message_id_header" in kolommen(con, "message_global_data") \
-        and "global_message_id" in mcols
-    heeft_summ = "summaries" in tabs and "summary" in mcols
-    heeft_ontv = "recipients" in tabs
-    o_msg = o_adr = None
-    if heeft_ontv:
-        rc = kolommen(con, "recipients")
-        o_msg = "message" if "message" in rc else ("message_id" if "message_id" in rc else None)
-        o_adr = "address" if "address" in rc else ("address_id" if "address_id" in rc else None)
-        heeft_ontv = bool(o_msg and o_adr)
-
-    via_sa = False
-    if "sender_addresses" in tabs:
-        try:
-            via_sa = con.execute("SELECT 1 FROM messages m JOIN sender_addresses sa ON sa.sender = m.sender LIMIT 1").fetchone() is not None
-        except sqlite3.Error:
-            via_sa = False
-    tokens = query.split()
-    where, params = bouw_where(tokens, heeft_ontv, o_msg, o_adr, heeft_summ)
-    deleted = "m.deleted = 0 AND " if "deleted" in mcols else ""
-    prefix = "COALESCE(m.subject_prefix, '')" if "subject_prefix" in mcols else "''"
+    X = schema(con)
+    where, params = bouw_where(query.split(), X)
     sql = """
-        SELECT %s, s.subject, a.address, a.comment, m.date_received, mb.url,
-               %s, %s, %s
+        SELECT m.ROWID, %s, %s, %s, %s, %s, %s, %s, %s, %s
         FROM messages m
-        LEFT JOIN subjects s ON s.ROWID = m.subject
         %s
-        LEFT JOIN mailboxes mb ON mb.ROWID = m.mailbox
-        %s %s
         WHERE %s%s
-        ORDER BY m.date_received DESC LIMIT 400
-    """ % (prefix,
-           "g.message_id_header" if heeft_hdr else "NULL",
-           "sm.summary" if heeft_summ else "NULL",
-           "m.read" if "read" in mcols else "1",
-           "LEFT JOIN addresses a ON a.ROWID = m.sender",
-           "LEFT JOIN message_global_data g ON g.ROWID = m.global_message_id" if heeft_hdr else "",
-           "LEFT JOIN summaries sm ON sm.ROWID = m.summary" if heeft_summ else "",
-           deleted, where)
+        ORDER BY %s DESC LIMIT 400
+    """ % (X["prefix"], X["subj"], X["addr"], X["name"] or "NULL", X["date"], X["box"] or "NULL",
+           X["hdr"] or "NULL", X["summ"] or "NULL", X["read"],
+           "\n        ".join(X["joins"]), X["deleted"], where, X["date"])
     try:
         rijen = con.execute(sql, params).fetchall()
     except sqlite3.Error as e:
         uit([melding("Search failed", "%s – run ./mail_search.py --schema in the workflow folder" % e)])
 
     gezien, items = {}, []
-    for pre, onderwerp, adres, naam, ts, url, hdr, summ, gelezen in rijen:
+    for rowid, pre, onderwerp, adres, naam, ts, url, hdr, summ, gelezen in rijen:
         box = boxnaam(url)
         if box.lower() in SKIP_BOXEN:
             continue
-        sleutel = hdr or ("rij%d" % len(gezien))
+        sleutel = hdr or ("row%d" % rowid)
         if sleutel in gezien:
             oud = gezien[sleutel]
             if oud["alle"] and box.lower() not in ALLE_BOXEN:
@@ -237,6 +253,10 @@ def main():
         titel = ((pre or "") + (onderwerp or "")).strip() or "(no subject)"
         if not gelezen:
             titel = "● " + titel
+        if adres and not naam:
+            mm = re.match(r'^\s*"?(.*?)"?\s*<([^>]+)>\s*$', str(adres))
+            if mm:
+                naam, adres = mm.group(1), mm.group(2)
         afz = ("%s <%s>" % (naam, adres)) if naam and adres and naam != adres else (adres or naam or "")
         item = {
             "uid": sleutel,
@@ -255,8 +275,8 @@ def main():
                 h = "<" + h + ">"
             item["arg"] = "message://" + quote(h, safe="@._+-")
         else:
-            item["valid"] = False
-            item["subtitle"] += "  ·  (no message id, cannot open)"
+            # Older Mail databases do not store the Message-ID header: open the message file instead.
+            item["arg"] = "emlx:%d" % rowid
         gezien[sleutel] = {"alle": box.lower() in ALLE_BOXEN, "i": len(items)}
         items.append(item)
     items = [i for i in items if i][:LIMIET]
