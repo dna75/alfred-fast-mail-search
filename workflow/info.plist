@@ -58,6 +58,19 @@
 				<false/>
 			</dict>
 		</array>
+		<key>A1000000-0000-4000-8000-000000000005</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A1000000-0000-4000-8000-0000000000FF</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
 	</dict>
 	<key>createdby</key>
 	<string>dna75</string>
@@ -342,6 +355,65 @@ esac</string>
 			<key>version</key>
 			<integer>2</integer>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>0</integer>
+				<key>keyword</key>
+				<string>{var:kw_date}</string>
+				<key>queuedelaycustom</key>
+				<integer>2</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>2</integer>
+				<key>runningsubtext</key>
+				<string>Searching…</string>
+				<key>script</key>
+				<string>PY=""
+for p in /opt/homebrew/bin/python3 /usr/local/bin/python3; do
+  [ -x "$p" ] &amp;&amp; PY="$p" &amp;&amp; break
+done
+# /usr/bin/python3 is only a real Python once Apple's Command Line Tools are installed
+if [ -z "$PY" ] &amp;&amp; /usr/bin/xcode-select -p &gt;/dev/null 2&gt;&amp;1 &amp;&amp; [ -x /usr/bin/python3 ]; then PY=/usr/bin/python3; fi
+if [ -z "$PY" ]; then
+  echo '{"items":[{"title":"Python 3 is not installed","subtitle":"Press Enter to install Apple Command Line Tools (includes Python 3), then search again","arg":"install-python","valid":true}]}'
+  exit 0
+fi
+exec "$PY" ./mail_search.py --field=date "$1" 2&gt;&amp;1</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>today, yesterday, week, 2026-11-18, 2026-11 (optionally plus search words)</string>
+				<key>title</key>
+				<string>Search Mail by date</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>A1000000-0000-4000-8000-000000000005</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
 	</array>
 	<key>readme</key>
 	<string>Fast search for Apple Mail, straight from Alfred. Results appear as you type, like Spotlight.
@@ -351,7 +423,8 @@ USAGE
   mailfrom jane        sender only (from)
   mailto jane          recipient only (to)
   mailsubject invoice  subject only
-You can also type prefixes in the main search: mail from:jane invoice, to:jane, subject:invoice.
+  maildate today       by date: today, yesterday, week, month, 2026-11-18, 18-11-2026, 2026-11 or 2026 (search words may follow)
+You can also type prefixes in the main search: mail from:jane invoice, to:jane, subject:invoice, date:2026-11-18, after:2026-11-01, before:2026.
 
 ACTIONS
   Enter           open the message in Mail
@@ -396,6 +469,13 @@ This workflow was created with the help of an AI assistant (Claude by Anthropic)
 			<integer>60</integer>
 			<key>ypos</key>
 			<integer>480</integer>
+		</dict>
+		<key>A1000000-0000-4000-8000-000000000005</key>
+		<dict>
+			<key>xpos</key>
+			<integer>60</integer>
+			<key>ypos</key>
+			<integer>620</integer>
 		</dict>
 		<key>A1000000-0000-4000-8000-0000000000FF</key>
 		<dict>
@@ -491,9 +571,30 @@ This workflow was created with the help of an AI assistant (Claude by Anthropic)
 			<key>variable</key>
 			<string>kw_subject</string>
 		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>maildate</string>
+				<key>placeholder</key>
+				<string></string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string></string>
+			<key>label</key>
+			<string>Keyword: date</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>kw_date</string>
+		</dict>
 	</array>
 	<key>version</key>
-	<string>1.0.2</string>
+	<string>1.1.0</string>
 	<key>webaddress</key>
 	<string>https://github.com/dna75/alfred-fast-mail-search</string>
 </dict>

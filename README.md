@@ -16,10 +16,13 @@ Download `Fast.Mail.Search.alfredworkflow` from the [latest release](https://git
 | `mailfrom` | sender only | `mailfrom jane` |
 | `mailto` | recipient only | `mailto jane` |
 | `mailsubject` | subject only | `mailsubject invoice` |
+| `maildate` | by date, optionally with search words | `maildate yesterday`, `maildate 2026-11 jane` |
 
 All words must match. Prefixes also work in the main search: `mail from:jane subject:invoice`.
 
-**Use your own keywords.** All four keywords can be changed in the workflow configuration (Alfred Preferences → Workflows → Fast Mail Search → Configure Workflow), for example to words in your own language.
+**Dates.** Use `date:`, `after:` or `before:` in any search, e.g. `mail invoice after:2026-11-01`. Accepted: `today`, `yesterday`, `week` (last 7 days), `month` (last 30 days), `2026-11-18`, `18-11-2026` (day first), `18-11` (this year), `2026-11`, `11-2026` and `2026`.
+
+**Use your own keywords.** All keywords can be changed in the workflow configuration (Alfred Preferences → Workflows → Fast Mail Search → Configure Workflow), for example to words in your own language.
 
 - <kbd>↩</kbd> open the message in Mail
 - <kbd>⌘</kbd><kbd>↩</kbd> copy the sender's email address

@@ -61,6 +61,76 @@ def esc(woord):
     return "%" + woord.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_") + "%"
 
 
+def datum_bereik(tekst):
+    """Turn a date word into (start, end) unix times. Accepts today/yesterday/week/month,
+    2026-11-18, 18-11-2026, 18-11 (this year), 2026-11, 11-2026 and 2026."""
+    t = tekst.strip().lower()
+    dag = datetime.timedelta(days=1)
+    nul = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    try:
+        if t in ("today", "vandaag"):
+            a, b = nul, nul + dag
+        elif t in ("yesterday", "gisteren"):
+            a, b = nul - dag, nul
+        elif t == "week":
+            a, b = nul - 7 * dag, nul + dag
+        elif t in ("month", "maand"):
+            a, b = nul - 30 * dag, nul + dag
+        else:
+            d = re.split(r"[-/.]", t)
+            if not all(x.isdigit() for x in d):
+                return None
+            n = [int(x) for x in d]
+
+            def maand(j, m):
+                return datetime.datetime(j, m, 1), datetime.datetime(j + (m == 12), m % 12 + 1, 1)
+
+            if len(d) == 1 and len(d[0]) == 4:
+                a, b = datetime.datetime(n[0], 1, 1), datetime.datetime(n[0] + 1, 1, 1)
+            elif len(d) == 2 and len(d[0]) == 4:
+                a, b = maand(n[0], n[1])
+            elif len(d) == 2 and len(d[1]) == 4:
+                a, b = maand(n[1], n[0])
+            elif len(d) == 2:
+                a = datetime.datetime(nul.year, n[1], n[0])
+                b = a + dag
+            elif len(d) == 3 and len(d[0]) == 4:
+                a = datetime.datetime(n[0], n[1], n[2])
+                b = a + dag
+            elif len(d) == 3:
+                a = datetime.datetime(n[2] + (2000 if n[2] < 100 else 0), n[1], n[0])
+                b = a + dag
+            else:
+                return None
+    except ValueError:
+        return None
+    return int(a.timestamp()), int(b.timestamp())
+
+
+DATUM_RE = r"^(date|datum|after|since|na|sinds|before|voor):(.+)$"
+
+
+def datum_where(tok, kolom, delen, params):
+    """Handle date:/after:/before: tokens. Returns True when the token was a date filter."""
+    md = re.match(DATUM_RE, tok, re.I)
+    if not md:
+        return False
+    bereik = datum_bereik(md.group(2))
+    if not bereik:
+        uit([melding("Unknown date “%s”" % md.group(2), "Use today, yesterday, week, month, 2026-11-18, 18-11-2026, 2026-11 or 2026")])
+    soort = md.group(1).lower()
+    if soort in ("date", "datum"):
+        delen.append("(%s >= ? AND %s < ?)" % (kolom, kolom))
+        params.extend(bereik)
+    elif soort in ("before", "voor"):
+        delen.append("(%s < ?)" % kolom)
+        params.append(bereik[0])
+    else:
+        delen.append("(%s >= ?)" % kolom)
+        params.append(bereik[0])
+    return True
+
+
 def bouw_where(tokens, X):
     """X holds the SQL expressions for this database layout (see schema())."""
     delen, params = [], []
@@ -69,6 +139,8 @@ def bouw_where(tokens, X):
         return "%s LIKE ? ESCAPE '\\'" % expr
 
     for tok in tokens:
+        if datum_where(tok, X["date"], delen, params):
+            continue
         veld = None
         m = re.match(r"^(van|from|aan|to|onderwerp|subject):(.+)$", tok, re.I)
         if m:
@@ -198,12 +270,15 @@ def main():
 
     query = " ".join(args).strip()
     if veld:
-        query = " ".join(w if re.match(r"^\w+:", w) else veld + ":" + w for w in query.split())
+        query = " ".join(w if re.match(r"^\w+:", w) or (veld in ("date", "datum") and not datum_bereik(w))
+                         else veld + ":" + w for w in query.split())
     hint = {"van": "sender (name or address)", "from": "sender (name or address)",
             "aan": "recipient (name or address)", "to": "recipient (name or address)",
             "onderwerp": "word from the subject", "subject": "word from the subject"}
+    for k in ("date", "datum", "after", "since", "na", "sinds", "before", "voor"):
+        hint[k] = "date (today, yesterday, 2026-11-18, 2026-11)"
     for woord in query.split():
-        m = re.match(r"^(van|from|aan|to|onderwerp|subject):$", woord, re.I)
+        m = re.match(r"^(van|from|aan|to|onderwerp|subject|date|datum|after|since|na|sinds|before|voor):$", woord, re.I)
         if m:
             uit([melding("Type a %s after %s:" % (hint[m.group(1).lower()], m.group(1).lower()),
                          "For example  %s:jane" % m.group(1).lower())])
