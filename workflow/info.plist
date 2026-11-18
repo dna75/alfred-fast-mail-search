@@ -1,0 +1,450 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>bundleid</key>
+	<string>com.dna75.fastmailsearch</string>
+	<key>connections</key>
+	<dict>
+		<key>A1000000-0000-4000-8000-000000000001</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A1000000-0000-4000-8000-0000000000FF</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>A1000000-0000-4000-8000-000000000002</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A1000000-0000-4000-8000-0000000000FF</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>A1000000-0000-4000-8000-000000000003</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A1000000-0000-4000-8000-0000000000FF</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+		<key>A1000000-0000-4000-8000-000000000004</key>
+		<array>
+			<dict>
+				<key>destinationuid</key>
+				<string>A1000000-0000-4000-8000-0000000000FF</string>
+				<key>modifiers</key>
+				<integer>0</integer>
+				<key>modifiersubtext</key>
+				<string></string>
+				<key>vitoclose</key>
+				<false/>
+			</dict>
+		</array>
+	</dict>
+	<key>createdby</key>
+	<string>dna75</string>
+	<key>description</key>
+	<string>Fast search in Apple Mail by name, email address, subject or text</string>
+	<key>disabled</key>
+	<false/>
+	<key>name</key>
+	<string>Fast Mail Search</string>
+	<key>objects</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>0</integer>
+				<key>keyword</key>
+				<string>{var:kw_all}</string>
+				<key>queuedelaycustom</key>
+				<integer>2</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>2</integer>
+				<key>runningsubtext</key>
+				<string>Searching…</string>
+				<key>script</key>
+				<string>export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
+exec python3 ./mail_search.py "$1" 2&gt;&amp;1</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Name, email address, subject or text</string>
+				<key>title</key>
+				<string>Search Mail</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>A1000000-0000-4000-8000-000000000001</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>0</integer>
+				<key>keyword</key>
+				<string>{var:kw_from}</string>
+				<key>queuedelaycustom</key>
+				<integer>2</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>2</integer>
+				<key>runningsubtext</key>
+				<string>Searching…</string>
+				<key>script</key>
+				<string>export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
+exec python3 ./mail_search.py --field=from "$1" 2&gt;&amp;1</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Name or email address of the sender</string>
+				<key>title</key>
+				<string>Search Mail by sender</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>A1000000-0000-4000-8000-000000000002</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>0</integer>
+				<key>keyword</key>
+				<string>{var:kw_to}</string>
+				<key>queuedelaycustom</key>
+				<integer>2</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>2</integer>
+				<key>runningsubtext</key>
+				<string>Searching…</string>
+				<key>script</key>
+				<string>export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
+exec python3 ./mail_search.py --field=to "$1" 2&gt;&amp;1</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Name or email address of the recipient</string>
+				<key>title</key>
+				<string>Search Mail by recipient</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>A1000000-0000-4000-8000-000000000003</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>alfredfiltersresults</key>
+				<false/>
+				<key>alfredfiltersresultsmatchmode</key>
+				<integer>0</integer>
+				<key>argumenttreatemptyqueryasnil</key>
+				<true/>
+				<key>argumenttrimmode</key>
+				<integer>0</integer>
+				<key>argumenttype</key>
+				<integer>1</integer>
+				<key>escaping</key>
+				<integer>0</integer>
+				<key>keyword</key>
+				<string>{var:kw_subject}</string>
+				<key>queuedelaycustom</key>
+				<integer>2</integer>
+				<key>queuedelayimmediatelyinitially</key>
+				<true/>
+				<key>queuedelaymode</key>
+				<integer>0</integer>
+				<key>queuemode</key>
+				<integer>2</integer>
+				<key>runningsubtext</key>
+				<string>Searching…</string>
+				<key>script</key>
+				<string>export PATH="/usr/local/bin:/opt/homebrew/bin:/usr/bin:$PATH"
+exec python3 ./mail_search.py --field=subject "$1" 2&gt;&amp;1</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>subtext</key>
+				<string>Word from the subject</string>
+				<key>title</key>
+				<string>Search Mail by subject</string>
+				<key>type</key>
+				<integer>0</integer>
+				<key>withspace</key>
+				<true/>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.input.scriptfilter</string>
+			<key>uid</key>
+			<string>A1000000-0000-4000-8000-000000000004</string>
+			<key>version</key>
+			<integer>3</integer>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>concurrently</key>
+				<false/>
+				<key>escaping</key>
+				<integer>0</integer>
+				<key>script</key>
+				<string>if [ "$action" = "copy" ]; then printf %s "$1" | pbcopy; else open "$1"; fi</string>
+				<key>scriptargtype</key>
+				<integer>1</integer>
+				<key>scriptfile</key>
+				<string></string>
+				<key>type</key>
+				<integer>0</integer>
+			</dict>
+			<key>type</key>
+			<string>alfred.workflow.action.script</string>
+			<key>uid</key>
+			<string>A1000000-0000-4000-8000-0000000000FF</string>
+			<key>version</key>
+			<integer>2</integer>
+		</dict>
+	</array>
+	<key>readme</key>
+	<string>Fast search for Apple Mail, straight from Alfred. Results appear as you type, like Spotlight.
+
+USAGE
+  mail jane invoice    search everything: subject, sender, recipients and message preview. All words must match.
+  mailfrom jane        sender only (from)
+  mailto jane          recipient only (to)
+  mailsubject invoice  subject only
+You can also type prefixes in the main search: mail from:jane invoice, to:jane, subject:invoice.
+
+ACTIONS
+  Enter           open the message in Mail
+  Cmd+Enter       copy the sender's email address
+  Cmd+L           large type with the message preview
+Unread messages have a dot. Junk and trash are skipped; duplicates from "All Mail" are merged.
+
+REQUIREMENTS
+Alfred needs Full Disk Access (System Settings &gt; Privacy &amp; Security &gt; Full Disk Access) to read Mail's index at ~/Library/Mail. Nothing is written or sent anywhere; the database is opened read-only. Python 3 must be installed. Keywords can be changed in the workflow configuration.
+
+NOTES
+Only the message preview (first lines) is searched, not the full body. Mail's internal database format differs between macOS versions; if results look wrong, run ./mail_search.py --schema in the workflow folder.
+
+DISCLOSURE
+This workflow was created with the help of an AI assistant (Claude by Anthropic) and tested by the author.</string>
+	<key>uidata</key>
+	<dict>
+		<key>A1000000-0000-4000-8000-000000000001</key>
+		<dict>
+			<key>xpos</key>
+			<integer>60</integer>
+			<key>ypos</key>
+			<integer>60</integer>
+		</dict>
+		<key>A1000000-0000-4000-8000-000000000002</key>
+		<dict>
+			<key>xpos</key>
+			<integer>60</integer>
+			<key>ypos</key>
+			<integer>200</integer>
+		</dict>
+		<key>A1000000-0000-4000-8000-000000000003</key>
+		<dict>
+			<key>xpos</key>
+			<integer>60</integer>
+			<key>ypos</key>
+			<integer>340</integer>
+		</dict>
+		<key>A1000000-0000-4000-8000-000000000004</key>
+		<dict>
+			<key>xpos</key>
+			<integer>60</integer>
+			<key>ypos</key>
+			<integer>480</integer>
+		</dict>
+		<key>A1000000-0000-4000-8000-0000000000FF</key>
+		<dict>
+			<key>xpos</key>
+			<integer>360</integer>
+			<key>ypos</key>
+			<integer>60</integer>
+		</dict>
+	</dict>
+	<key>userconfigurationconfig</key>
+	<array>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>mail</string>
+				<key>placeholder</key>
+				<string></string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string></string>
+			<key>label</key>
+			<string>Keyword: search everything</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>kw_all</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>mailfrom</string>
+				<key>placeholder</key>
+				<string></string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string></string>
+			<key>label</key>
+			<string>Keyword: sender only</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>kw_from</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>mailto</string>
+				<key>placeholder</key>
+				<string></string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string></string>
+			<key>label</key>
+			<string>Keyword: recipient only</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>kw_to</string>
+		</dict>
+		<dict>
+			<key>config</key>
+			<dict>
+				<key>default</key>
+				<string>mailsubject</string>
+				<key>placeholder</key>
+				<string></string>
+				<key>required</key>
+				<true/>
+				<key>trim</key>
+				<true/>
+			</dict>
+			<key>description</key>
+			<string></string>
+			<key>label</key>
+			<string>Keyword: subject only</string>
+			<key>type</key>
+			<string>textfield</string>
+			<key>variable</key>
+			<string>kw_subject</string>
+		</dict>
+	</array>
+	<key>version</key>
+	<string>1.0.0</string>
+	<key>webaddress</key>
+	<string>https://github.com/dna75/alfred-fast-mail-search</string>
+</dict>
+</plist>
