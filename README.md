@@ -26,6 +26,7 @@ All words must match. Prefixes also work in the main search: `mail from:jane sub
 
 - <kbd>↩</kbd> open the message in Mail
 - <kbd>⌘</kbd><kbd>↩</kbd> copy the sender's email address
+- <kbd>⇧</kbd> or <kbd>⌘</kbd><kbd>Y</kbd> Quick Look: preview the message without leaving Alfred (shows the full message when its file is on this Mac, otherwise a summary)
 - <kbd>⌘</kbd><kbd>L</kbd> large type with the message preview
 
 Unread messages are marked with a dot. Junk and trash are skipped.

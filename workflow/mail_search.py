@@ -6,8 +6,8 @@ Multiple words must all match. Prefixes limit the field:
   from:jane   to:jane   subject:invoice
 Test: ./mail_search.py invoice   |   ./mail_search.py --schema   (lists tables/columns)
 """
-import sys, os, re, json, glob, sqlite3, datetime
-from urllib.parse import quote, unquote
+import sys, os, re, json, glob, sqlite3, datetime, html, tempfile, time
+from urllib.parse import quote, unquote, urlparse
 
 LIMIET = 30
 MONTHS = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"]
@@ -269,6 +269,55 @@ def datum_keuzes(getypt):
     return items
 
 
+def emlx_pad(db_pad, url, rowid):
+    """Find the message file for Quick Look: <Mail>/V*/<account>/<box>.mbox/*/Data/<digits>/Messages/<id>.emlx"""
+    try:
+        u = urlparse(url or "")
+        delen = [unquote(d) for d in u.path.split("/") if d]
+        if not u.netloc or not delen:
+            return None
+        basis = os.path.dirname(os.path.dirname(db_pad))
+        mbox = os.path.join(basis, u.netloc, *[d + ".mbox" for d in delen])
+        cijfers = list(reversed(str(rowid // 1000))) if rowid >= 1000 else []
+        patroon = os.path.join(glob.escape(mbox), "*", "Data", *cijfers, "Messages", "%d.*emlx" % rowid)
+        gevonden = glob.glob(patroon)
+        return gevonden[0] if gevonden else None
+    except Exception:
+        return None
+
+
+def voorbeeld(db_pad, url, rowid, titel, afz, datum, box, summ):
+    """Path for Alfred's Quick Look (Shift or Cmd+Y): the real message, else a small summary page."""
+    echt = emlx_pad(db_pad, url, rowid)
+    if echt:
+        return echt
+    try:
+        map_ = os.environ.get("alfred_workflow_cache") or os.path.join(tempfile.gettempdir(), "fast-mail-search")
+        os.makedirs(map_, exist_ok=True)
+        doel = os.path.join(map_, "preview-%d.html" % rowid)
+        e = html.escape
+        with open(doel, "w", encoding="utf-8") as f:
+            f.write("<!doctype html><meta charset='utf-8'><body style='font:15px -apple-system,sans-serif;margin:28px;"
+                    "line-height:1.5'><h2 style='margin:0 0 12px'>%s</h2><p style='color:#666;margin:0 0 18px'>"
+                    "From: %s<br>Date: %s<br>Mailbox: %s</p><p>%s</p><p style='color:#999;font-size:12px'>Preview only: the full message file was not found on this Mac.</p>"
+                    % (e(titel), e(afz), e(datum), e(box), e(summ or ""),))
+        return doel
+    except Exception:
+        return None
+
+
+def ruim_voorbeelden():
+    """Remove summary pages older than a day."""
+    try:
+        map_ = os.environ.get("alfred_workflow_cache") or os.path.join(tempfile.gettempdir(), "fast-mail-search")
+        grens = time.time() - 86400
+        for f in glob.glob(os.path.join(glob.escape(map_), "preview-*.html")):
+            if os.path.getmtime(f) < grens:
+                os.remove(f)
+    except Exception:
+        pass
+
+
 def main():
     veld = None
     args = []
@@ -362,6 +411,7 @@ def main():
             "title": titel,
             "subtitle": "%s  ·  %s  ·  %s" % (afz, datum_tekst(ts), box),
             "icon": MAIL_ICOON,
+            "_ql": (url, rowid, titel.lstrip("● "), afz, datum_tekst(ts), box, summ),
             "text": {"largetype": (summ or titel), "copy": titel},
             "variables": {"action": "open"},
             "mods": {"cmd": {"subtitle": "Copy sender email address (%s)" % (adres or ""),
@@ -379,6 +429,11 @@ def main():
         gezien[sleutel] = {"alle": box.lower() in ALLE_BOXEN, "i": len(items)}
         items.append(item)
     items = [i for i in items if i][:LIMIET]
+    ruim_voorbeelden()
+    for i in items:
+        ql = voorbeeld(pad, *i.pop("_ql"))
+        if ql:
+            i["quicklookurl"] = ql
     if not items:
         uit([melding("No mail found for “%s”" % query, "Try a shorter search term")])
     uit(items)
